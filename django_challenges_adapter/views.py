@@ -49,7 +49,7 @@ def challenge(request, path):
 def index(request):
     base = Path(settings.BASE_DIR) / 'private' / 'challenges'
     directories = []
-    for dir in base.iterdir():
+    for dir in sorted(base.iterdir()):
         if not dir.is_dir():
             continue
         directory = SimpleNamespace()
@@ -57,7 +57,7 @@ def index(request):
         directory.name = str(dir.name).replace('_', ' ')
         url_part_1 = urllib.parse.quote(dir.name)
         directory.directories = []
-        for dir2 in dir.iterdir():
+        for dir2 in sorted(dir.iterdir()):
             if not dir2.is_dir():
                 continue
             directory2 = SimpleNamespace()
@@ -65,7 +65,7 @@ def index(request):
             directory2.name = str(dir2.name).replace('_', ' ')
             url_part_2 = urllib.parse.quote(dir2.name)
             directory2.directories = []
-            for dir3 in dir2.iterdir():
+            for dir3 in sorted(dir2.iterdir()):
                 if not dir3.is_dir():
                     continue
                 directory3 = SimpleNamespace()
