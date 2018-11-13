@@ -1,12 +1,12 @@
 import sys
+import urllib.parse
 from pathlib import Path
 from types import SimpleNamespace
-import urllib.parse
 
 from challenges.conf import Conf
-
 from django.http import HttpResponse, Http404
 from django.template.loader import get_template
+from django.conf import settings
 
 def _get_challenge(dir):
     parent = str(dir.parent)
@@ -30,9 +30,10 @@ def _get_challenge(dir):
     set_names(challenge)
     return challenge
 
+
 def challenge(request, path):
     path = urllib.parse.unquote(path)
-    base = Path('private', 'challenges').absolute()
+    base = Path(settings.BASE_DIR) / 'private' / 'challenges'
     dir = (base / path).absolute()
     # only accept paths below base
     if not str(dir).startswith(str(base)):
@@ -40,12 +41,13 @@ def challenge(request, path):
     if dir.is_dir():
         challenge = _get_challenge(dir)
         template = get_template('django_challenges_adapter/challenge.html')
-        return HttpResponse(template.render( {'challenge': challenge}, request))
+        return HttpResponse(template.render({'challenge': challenge}, request))
     else:
         raise Http404
 
+
 def index(request):
-    base = Path('private', 'challenges').absolute()
+    base = Path(settings.BASE_DIR) / 'private' / 'challenges'
     directories = []
     for dir in base.iterdir():
         if not dir.is_dir():
@@ -73,4 +75,3 @@ def index(request):
                 directory3.url = Path(url_part_1) / url_part_2 / url_part_3
     template = get_template('django_challenges_adapter/index.html')
     return HttpResponse(template.render({'directories': directories}, request))
-
