@@ -27,7 +27,15 @@ def _get_challenge(dir):
         challenge.classname = challenge.__class__.__name__
         challenge.doc = docstring
 
+    def check_sample(challenge):
+        sample = dir / 'sample.txt'
+        if sample.is_file():
+            challenge.has_sample_file = True
+        else:
+            challenge.has_sample_file = False
+
     set_names(challenge)
+    check_sample(challenge)
     return challenge
 
 
@@ -83,8 +91,26 @@ def ajax(request):
     base = Path(settings.BASE_DIR) / 'private' / 'challenges'
     dir = (base / path).absolute()
     challenge = _get_challenge(dir)
+    if request.GET.get('type') == 'tiny':
+        # take object sample from class sample
+        challenge.sample = challenge.sample
+    elif request.GET.get('type') == 'big':
+        sample_file = dir / 'sample.txt'
+        challenge.sample = sample_file.read_text()
+    else:
+        raise Exception('invalid type')
     challenge.main()
+    if len(challenge.sample) > 1000:
+        cropped = True
+        input = challenge.sample[:1000]
+    else:
+        input = challenge.sample
+        cropped = False
     data = {
-        'result' : challenge.output
+        'input' : input,
+        'length' : len(challenge.sample),
+        'cropped' : cropped,
+        'cropped_to' : 1000,
+        'output' : challenge.output,
     }
     return JsonResponse(data)
