@@ -6,5 +6,6 @@ app_name = "challenges"
 
 urlpatterns = [
     path('', views.index),
-    re_path(r'(?P<path>.*)', views.challenge)
+    path('ajax', views.ajax),
+    re_path(r'(?P<path>.*)', views.challenge),
 ]

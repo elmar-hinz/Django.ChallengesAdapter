@@ -4,7 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from challenges.conf import Conf
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.template.loader import get_template
 from django.conf import settings
 
@@ -32,7 +32,7 @@ def _get_challenge(dir):
 
 
 def challenge(request, path):
-    path = urllib.parse.unquote(path)
+    # path = urllib.parse.unquote(quoted_path)
     base = Path(settings.BASE_DIR) / 'private' / 'challenges'
     dir = (base / path).absolute()
     # only accept paths below base
@@ -40,6 +40,7 @@ def challenge(request, path):
         raise Http404
     if dir.is_dir():
         challenge = _get_challenge(dir)
+        challenge.path = path
         template = get_template('django_challenges_adapter/challenge.html')
         return HttpResponse(template.render({'challenge': challenge}, request))
     else:
@@ -75,3 +76,15 @@ def index(request):
                 directory3.url = Path(url_part_1) / url_part_2 / url_part_3
     template = get_template('django_challenges_adapter/index.html')
     return HttpResponse(template.render({'directories': directories}, request))
+
+
+def ajax(request):
+    path = request.GET.get('path')
+    base = Path(settings.BASE_DIR) / 'private' / 'challenges'
+    dir = (base / path).absolute()
+    challenge = _get_challenge(dir)
+    challenge.main()
+    data = {
+        'result' : challenge.output
+    }
+    return JsonResponse(data)
